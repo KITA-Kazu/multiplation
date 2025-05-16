@@ -123,7 +123,7 @@
             transition: background-color 0.2s ease, opacity 0.2s ease;
         }
 
-        button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+        button:hover:not(:disabled) {
             opacity: 0.85;
         }
         button:disabled {
@@ -136,7 +136,7 @@
             background-color: #2ecc71; /* Emerald */
             margin-top: 20px;
         }
-        #start-game-button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+        #start-game-button:hover:not(:disabled) {
             background-color: #27ae60;
         }
 
@@ -171,10 +171,10 @@
             border-radius: 6px;
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
-        #answer-options-container button:hover:not(:disabled), #review-answer-options-container button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+        #answer-options-container button:hover:not(:disabled), #review-answer-options-container button:hover:not(:disabled) {
             background-color: #dce4e7;
         }
-        #answer-options-container button:active:not(:disabled), #review-answer-options-container button:active:not(:disabled) { /* :not(:disabled) を追加 */
+        #answer-options-container button:active:not(:disabled), #review-answer-options-container button:active:not(:disabled) {
             transform: translateY(1px);
         }
         #answer-options-container button.correct-option,
@@ -332,8 +332,8 @@
                 selectNormalModeButton.classList.remove('selected');
                 selectOniHardModeButton.classList.remove('selected');
                 danSelectionContainer.style.display = 'none';
-                startGameButton.style.display = 'none'; // 最初は非表示
-                startGameButton.disabled = true; // 最初は無効
+                startGameButton.style.display = 'none';
+                startGameButton.disabled = true;
                 generateDanCheckboxes();
                 showScreen('selection');
                 console.log("Initialization complete. Selection screen shown.");
@@ -347,7 +347,7 @@
                     checkbox.type = 'checkbox';
                     checkbox.value = i;
                     checkbox.id = `dan-${i}`;
-                    checkbox.addEventListener('change', checkDanSelection); // 段選択の変更を監視
+                    checkbox.addEventListener('change', checkDanSelection);
                     label.appendChild(checkbox);
                     label.appendChild(document.createTextNode(` ${i}の段`));
                     danSelectionDiv.appendChild(label);
@@ -355,7 +355,6 @@
             }
 
              function checkDanSelection() {
-                // ノーマルモードが選択されていて、かつ1つ以上の段がチェックされている場合のみゲーム開始ボタンを有効化
                 if (selectedMode === 'normal') {
                     const selectedDansCount = document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').length;
                     startGameButton.disabled = selectedDansCount === 0;
@@ -376,24 +375,25 @@
             // --- Question & Answer Option Generation ---
             function generateQuestions() {
                 allPossibleQuestions = [];
-                // incorrectAnswers はゲーム開始時にリセット (startGameFlow内で行う)
 
                 if (selectedMode === 'oni-hard') {
-                    for (let i = 1; i <= 13; i++) {
-                        for (let j = 1; j <= 9; j++) {
-                            allPossibleQuestions.push({ n1: i, n2: j, answer: i * j, text: `${i} × ${j}` });
+                    const oniHardDans = [7, 8, 9, 10, 11, 12, 13, 14, 15]; // 新しい鬼ハードの段
+                    oniHardDans.forEach(dan => {
+                        for (let j = 1; j <= 9; j++) { // かける数は1から9まで
+                            allPossibleQuestions.push({ n1: dan, n2: j, answer: dan * j, text: `${dan} × ${j}` });
                         }
-                    }
-                    for (let i = 1; i <= 20; i++) {
-                        allPossibleQuestions.push({ n1: i, n2: i, answer: i * i, text: `${i}² (${i}×${i})` });
-                    }
+                    });
+                    // 平方の出題は削除 (もし必要ならコメントアウトを解除し、範囲を調整)
+                    // for (let i = 1; i <= 15; i++) { // 例: 1～15の平方
+                    //     allPossibleQuestions.push({ n1: i, n2: i, answer: i * i, text: `${i}² (${i}×${i})` });
+                    // }
+
                 } else if (selectedMode === 'normal') {
                     const selectedDans = [];
                     document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').forEach(cb => {
                         selectedDans.push(parseInt(cb.value));
                     });
                     if (selectedDans.length === 0) {
-                        // このチェックはstartGameButtonのイベントリスナーで行うので、ここではfalseを返すだけでよい
                         return false;
                     }
                     selectedDans.forEach(dan => {
@@ -402,7 +402,11 @@
                         }
                     });
                 }
-                if (allPossibleQuestions.length === 0) return false;
+
+                if (allPossibleQuestions.length === 0) {
+                    console.error("No questions generated. Mode:", selectedMode);
+                    return false;
+                }
 
                 allPossibleQuestions.sort(() => Math.random() - 0.5); // Shuffle
                 return true;
@@ -412,47 +416,50 @@
                 const options = new Set();
                 options.add(correctAnswer);
 
-                const variations = [-1, 1, -2, 2, -10, 10, -question.n1, question.n1, -question.n2, question.n2].filter(v => correctAnswer + v > 0);
-                variations.sort(() => Math.random() - 0.5); // バリエーションをシャッフル
+                // 正解に近い値や、関連する値を生成する戦略
+                const variations = [];
+                // ±1, ±2
+                variations.push(correctAnswer - 1, correctAnswer + 1, correctAnswer - 2, correctAnswer + 2);
+                // ±10
+                variations.push(correctAnswer - 10, correctAnswer + 10);
 
-                for (const v of variations) {
-                    if (options.size >= NUM_OPTIONS) break;
-                    const option = correctAnswer + v;
-                    if (option > 0 && !options.has(option)) {
-                        options.add(option);
-                    }
-                }
-
-                if (question && (selectedMode === 'normal' || (selectedMode === 'oni-hard' && question.n1 <=13 && question.n2 <=9)) ) {
-                     for (let i = 0; i < 5; i++) {
-                        if (options.size >= NUM_OPTIONS) break;
-                        const randomMultiplier = Math.floor(Math.random() * 9) + 1;
+                if (question) {
+                    // かけられる数、かける数を加減する
+                    variations.push(correctAnswer - question.n1, correctAnswer + question.n1);
+                    variations.push(correctAnswer - question.n2, correctAnswer + question.n2);
+                    // 同じ段の別の掛け算 (間違いやすい)
+                    for(let i=1; i<=3; ++i) { // いくつか候補を生成
+                        let randomMultiplier = Math.floor(Math.random() * 9) + 1;
                         if (randomMultiplier !== question.n2) {
-                            const option = question.n1 * randomMultiplier;
-                            if (option > 0 && !options.has(option) && option !== correctAnswer) {
-                                options.add(option);
-                            }
+                             variations.push(question.n1 * randomMultiplier);
+                        }
+                        if (selectedMode === 'oni-hard') { // 鬼ハードならかける数も大きい場合がある
+                           randomMultiplier = Math.floor(Math.random() * 15) +1; // 15まで
+                           if (randomMultiplier !== question.n2) {
+                               variations.push(question.n1 * randomMultiplier);
+                           }
                         }
                     }
                 }
                 
-                if (selectedMode === 'oni-hard') {
-                     for (let i = 0; i < 5; i++) {
-                        if (options.size >= NUM_OPTIONS) break;
-                        const randomBase = Math.floor(Math.random() * 20) + 1;
-                        const option = randomBase * randomBase;
-                         if (option > 0 && !options.has(option) && option !== correctAnswer) {
-                            options.add(option);
-                        }
+                // 有効な候補（0より大きく、重複しない）のみoptionsに追加
+                variations.filter(v => v > 0 && v !== correctAnswer).forEach(v => {
+                    if (options.size < NUM_OPTIONS) {
+                        options.add(v);
                     }
+                });
+
+
+                // それでも足りない場合はランダムな値で埋める
+                let maxPossibleAnswer = selectedMode === 'oni-hard' ? (15*9 + 20) : (9*9 + 20); // 最大値の目安
+                if (question && (question.n1 > 9 || question.n2 > 9)) { // 鬼ハードの大きい段の場合
+                    maxPossibleAnswer = Math.max(maxPossibleAnswer, question.n1 * question.n2 + 30);
                 }
 
-                let maxPossibleAnswer = selectedMode === 'oni-hard' ? 400 : 81;
-                 if (question && question.n1 > 9 || question.n2 > 9) maxPossibleAnswer = Math.max(maxPossibleAnswer, question.n1 * question.n2 + 30);
 
                 while (options.size < NUM_OPTIONS) {
-                    const rangeMin = Math.max(1, correctAnswer - 25);
-                    const rangeMax = correctAnswer + 25;
+                    const rangeMin = Math.max(1, correctAnswer - 30); // 少し広めに
+                    const rangeMax = correctAnswer + 30;
                     let randomOption = Math.floor(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
                     
                     if (options.has(randomOption) || randomOption <= 0) {
@@ -464,16 +471,17 @@
                     } else { 
                         let failsafeCount = 0;
                         let failsafeOption;
-                        do {
-                            failsafeOption = Math.floor(Math.random() * (correctAnswer + 60)) + 1;
+                        do { // 無限ループを避けるための試行回数制限
+                            failsafeOption = Math.floor(Math.random() * (maxPossibleAnswer + 20)) + 1; // さらに範囲を広げる
                             failsafeCount++;
-                        } while (options.has(failsafeOption) && failsafeCount < 20) // 無限ループ防止
+                        } while (options.has(failsafeOption) && failsafeCount < 30)
                         if (failsafeOption > 0 && !options.has(failsafeOption)) {
                              options.add(failsafeOption);
                         }
                     }
-                    if (options.size < NUM_OPTIONS && options.size > NUM_OPTIONS -2 && options.size > 0) { // あと少しで埋まらない場合
-                        for(let i=1; i<1000; i++){
+                     // どうしても埋まらない場合の最終手段
+                    if (options.size < NUM_OPTIONS && options.size >= NUM_OPTIONS -2 && options.size > 0) {
+                         for(let i=1; i < maxPossibleAnswer + 50 ; i++){ // 探索範囲を広げる
                             if(!options.has(i)) {
                                 options.add(i);
                                 if(options.size >= NUM_OPTIONS) break;
@@ -483,12 +491,14 @@
                 }
                 
                 const finalOptions = Array.from(options);
-                while(finalOptions.length > NUM_OPTIONS) finalOptions.pop();
-                while(finalOptions.length < NUM_OPTIONS) {
+                // 念のため、最終的な選択肢数がNUM_OPTIONSになるように調整
+                while(finalOptions.length > NUM_OPTIONS) finalOptions.pop(); 
+                while(finalOptions.length < NUM_OPTIONS) { 
                     let fillValue = 1;
-                    while(finalOptions.includes(fillValue) || options.has(fillValue)) fillValue++;
+                    // 既存のoptionsとfinalOptionsの両方にない値を探す
+                    while(options.has(fillValue) || finalOptions.includes(fillValue)) fillValue++;
                     finalOptions.push(fillValue);
-                    options.add(fillValue); // Setにも追加して重複を避ける
+                    options.add(fillValue); // Setにも追加して次のループでの重複を避ける
                 }
                 return finalOptions.sort(() => Math.random() - 0.5);
             }
@@ -506,16 +516,20 @@
             // --- Game Logic ---
             function startGameFlow() {
                 console.log("Starting game flow...");
-                incorrectAnswers = []; // ゲーム開始時に間違えた問題リストをリセット
+                incorrectAnswers = [];
 
-                if (!generateQuestions()) { // 問題生成
-                    // generateQuestions内でfalseが返るのは、ノーマルモードで段が未選択の場合のみ
-                    // このチェックはstartGameButtonのクリックハンドラで行っているので、通常ここには来ない
+                if (!generateQuestions()) {
                     alert('問題の生成に失敗しました。モードと範囲の選択を確認してください。');
-                    init(); // 初期画面に戻す
+                    init();
                     return;
                 }
                 console.log(`Generated ${allPossibleQuestions.length} questions.`);
+                if (allPossibleQuestions.length === 0) { // 再度チェック
+                    alert('出題できる問題がありません。設定を見直してください。');
+                    init();
+                    return;
+                }
+
 
                 score = 0;
                 timeLeft = 60;
@@ -600,7 +614,7 @@
                     if (timeLeft > 0) {
                         nextQuestion();
                     } else {
-                        endGame(); // 時間切れならここでゲーム終了処理
+                        endGame();
                     }
                 }, 1500);
             }
@@ -696,8 +710,6 @@
                             btn.disabled = false;
                             btn.classList.remove('correct-option', 'incorrect-option');
                         });
-                        // nextReviewQuestion(); // 間違えたら同じ問題を再度出すので、ここでは呼び出さない
-                                            // ボタンが再度有効になれば、同じ問題に再挑戦できる
                     }, 1200);
                 }
             }
@@ -710,7 +722,7 @@
                 selectOniHardModeButton.classList.remove('selected');
                 danSelectionContainer.style.display = 'block';
                 startGameButton.style.display = 'inline-block';
-                checkDanSelection(); // 段が選択されているか確認し、ボタンの有効/無効を更新
+                checkDanSelection();
             });
 
             selectOniHardModeButton.addEventListener('click', () => {
@@ -721,17 +733,15 @@
                 danSelectionContainer.style.display = 'none';
                 document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
                 startGameButton.style.display = 'inline-block';
-                startGameButton.disabled = false; // 鬼ハードモードは段選択不要なので即有効
+                startGameButton.disabled = false;
             });
 
             startGameButton.addEventListener('click', () => {
                 console.log("Start game button clicked. Mode:", selectedMode);
-                if (!selectedMode) { // 通常は発生しないはずだが念のため
+                if (!selectedMode) {
                     alert('まずモードを選択してください。');
                     return;
                 }
-                // ノーマルモードの場合の段選択チェックは、ボタンのdisabled属性で制御済み
-                // なので、ここでは特別なチェックは不要（ボタンが押せる時点で条件は満たされているはず）
                 startGameFlow();
             });
 
