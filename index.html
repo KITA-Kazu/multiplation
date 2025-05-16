@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九九チャレンジ (6択)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            margin: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        #app-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 550px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        p {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        #mode-selection-buttons button {
+            margin: 8px 5px;
+            padding: 12px 18px;
+            font-size: 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            background-color: #f0f0f0; /* Default background */
+            border: 1px solid #ccc;
+            color: #333;
+        }
+        #mode-selection-buttons button:active {
+            transform: translateY(1px);
+        }
+
+        #mode-selection-buttons button.selected {
+            color: white;
+            border-width: 2px;
+            border-style: solid;
+        }
+        #mode-selection-buttons button#select-normal-mode-button.selected {
+            background-color: #3498db; /* Blue */
+            border-color: #2980b9;
+        }
+         #mode-selection-buttons button#select-oni-hard-mode-button.selected {
+            background-color: #e74c3c; /* Red */
+            border-color: #c0392b;
+        }
+
+
+        #dan-selection-container {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        #dan-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        #dan-selection label {
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            transition: background-color 0.2s ease;
+        }
+        #dan-selection label:hover {
+            background-color: #ecf0f1;
+        }
+        #dan-selection input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.1);
+        }
+
+        button {
+            padding: 12px 18px;
+            font-size: 16px;
+            background-color: #95a5a6; /* Clouds */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 5px;
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+            opacity: 0.85;
+        }
+        button:disabled {
+            background-color: #bdc3c7; /* Silver */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        #start-game-button {
+            background-color: #2ecc71; /* Emerald */
+            margin-top: 20px;
+        }
+        #start-game-button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+            background-color: #27ae60;
+        }
+
+        #game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        #question-area p#question-text {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        #answer-options-container, #review-answer-options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        #answer-options-container button, #review-answer-options-container button {
+            padding: 18px 12px;
+            font-size: 18px;
+            background-color: #ecf0f1; /* Light gray */
+            color: #34495e;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        #answer-options-container button:hover:not(:disabled), #review-answer-options-container button:hover:not(:disabled) { /* :not(:disabled) を追加 */
+            background-color: #dce4e7;
+        }
+        #answer-options-container button:active:not(:disabled), #review-answer-options-container button:active:not(:disabled) { /* :not(:disabled) を追加 */
+            transform: translateY(1px);
+        }
+        #answer-options-container button.correct-option,
+        #review-answer-options-container button.correct-option {
+            background-color: #2ecc71 !important; /* Emerald */
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+        #answer-options-container button.incorrect-option,
+        #review-answer-options-container button.incorrect-option {
+            background-color: #e74c3c !important; /* Alizarin */
+            color: white !important;
+            border-color: #c0392b !important;
+        }
+
+
+        #feedback-text, #review-feedback-text {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 1.3em;
+            font-size: 1.1em;
+        }
+
+        .correct { color: #27ae60; }
+        .incorrect { color: #c0392b; }
+
+        #incorrect-questions-list {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            background-color: #fdfdfd;
+        }
+        #incorrect-questions-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+        }
+        #incorrect-questions-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- 画面1: モード・範囲選択 -->
+        <div id="selection-screen" class="screen active">
+            <h1>九九チャレンジ</h1>
+            <p>プレイするモードを選んでください:</p>
+            <div id="mode-selection-buttons">
+                <button id="select-normal-mode-button">ノーマルモード</button>
+                <button id="select-oni-hard-mode-button">鬼ハードモード</button>
+            </div>
+
+            <div id="dan-selection-container" style="display:none;">
+                <p>出題範囲を選択してください（複数選択可）:</p>
+                <div id="dan-selection">
+                    <!-- チェックボックスがJSで生成されます -->
+                </div>
+            </div>
+            <button id="start-game-button" style="display:none;">ゲーム開始</button>
+        </div>
+
+        <!-- 画面2: ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <div id="game-info">
+                <p>残り時間: <span id="time-left">60</span>秒</p>
+                <p>スコア: <span id="current-score">0</span></p>
+            </div>
+            <div id="question-area">
+                <p id="question-text"></p>
+                <div id="answer-options-container">
+                    <!-- 選択肢ボタンがJSで生成されます -->
+                </div>
+            </div>
+            <p id="feedback-text"></p>
+        </div>
+
+        <!-- 画面3: 結果表示画面 -->
+        <div id="result-screen" class="screen">
+            <h1>結果発表</h1>
+            <p>最終スコア: <span id="final-score">0</span>点</p>
+            <h2>間違えた問題:</h2>
+            <ul id="incorrect-questions-list">
+                <!-- 間違えた問題がJSで表示されます -->
+            </ul>
+            <button id="review-training-button">復習トレーニング</button>
+            <button id="try-again-button">もう一度チャレンジする</button>
+        </div>
+
+        <!-- 画面4: 復習トレーニング画面 -->
+        <div id="review-screen" class="screen">
+            <h1>復習トレーニング</h1>
+            <p id="review-question-text"></p>
+            <div id="review-answer-options-container">
+                <!-- 復習用選択肢ボタンがJSで生成されます -->
+            </div>
+            <p id="review-feedback-text"></p>
+            <p id="review-progress-text"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const selectionScreen = document.getElementById('selection-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const resultScreen = document.getElementById('result-screen');
+            const reviewScreen = document.getElementById('review-screen');
+
+            const selectNormalModeButton = document.getElementById('select-normal-mode-button');
+            const selectOniHardModeButton = document.getElementById('select-oni-hard-mode-button');
+            const danSelectionContainer = document.getElementById('dan-selection-container');
+            const danSelectionDiv = document.getElementById('dan-selection');
+            const startGameButton = document.getElementById('start-game-button');
+
+            const timeLeftSpan = document.getElementById('time-left');
+            const currentScoreSpan = document.getElementById('current-score');
+            const questionTextP = document.getElementById('question-text');
+            const answerOptionsContainer = document.getElementById('answer-options-container');
+            const feedbackTextP = document.getElementById('feedback-text');
+
+            const finalScoreSpan = document.getElementById('final-score');
+            const incorrectQuestionsListUl = document.getElementById('incorrect-questions-list');
+            const reviewTrainingButton = document.getElementById('review-training-button');
+            const tryAgainButton = document.getElementById('try-again-button');
+
+            const reviewQuestionTextP = document.getElementById('review-question-text');
+            const reviewAnswerOptionsContainer = document.getElementById('review-answer-options-container');
+            const reviewFeedbackTextP = document.getElementById('review-feedback-text');
+            const reviewProgressTextP = document.getElementById('review-progress-text');
+
+            // --- Game State ---
+            let score = 0;
+            let timeLeft = 60;
+            let timerInterval;
+            let questionStartTime;
+            let currentQuestion = null;
+            let allPossibleQuestions = [];
+            let incorrectAnswers = [];
+            let reviewQuestionsPool = [];
+            let currentReviewQuestion = null;
+            let selectedMode = null; // 'normal' or 'oni-hard'
+            const NUM_OPTIONS = 6;
+
+            // --- Initialization ---
+            function init() {
+                console.log("Initializing app...");
+                selectedMode = null;
+                selectNormalModeButton.classList.remove('selected');
+                selectOniHardModeButton.classList.remove('selected');
+                danSelectionContainer.style.display = 'none';
+                startGameButton.style.display = 'none'; // 最初は非表示
+                startGameButton.disabled = true; // 最初は無効
+                generateDanCheckboxes();
+                showScreen('selection');
+                console.log("Initialization complete. Selection screen shown.");
+            }
+
+            function generateDanCheckboxes() {
+                danSelectionDiv.innerHTML = '';
+                for (let i = 1; i <= 9; i++) {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = i;
+                    checkbox.id = `dan-${i}`;
+                    checkbox.addEventListener('change', checkDanSelection); // 段選択の変更を監視
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(` ${i}の段`));
+                    danSelectionDiv.appendChild(label);
+                }
+            }
+
+             function checkDanSelection() {
+                // ノーマルモードが選択されていて、かつ1つ以上の段がチェックされている場合のみゲーム開始ボタンを有効化
+                if (selectedMode === 'normal') {
+                    const selectedDansCount = document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').length;
+                    startGameButton.disabled = selectedDansCount === 0;
+                }
+            }
+
+
+            function showScreen(screenName) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                const screenToShow = document.getElementById(`${screenName}-screen`);
+                if (screenToShow) {
+                    screenToShow.classList.add('active');
+                } else {
+                    console.error(`Screen not found: ${screenName}-screen`);
+                }
+            }
+
+            // --- Question & Answer Option Generation ---
+            function generateQuestions() {
+                allPossibleQuestions = [];
+                // incorrectAnswers はゲーム開始時にリセット (startGameFlow内で行う)
+
+                if (selectedMode === 'oni-hard') {
+                    for (let i = 1; i <= 13; i++) {
+                        for (let j = 1; j <= 9; j++) {
+                            allPossibleQuestions.push({ n1: i, n2: j, answer: i * j, text: `${i} × ${j}` });
+                        }
+                    }
+                    for (let i = 1; i <= 20; i++) {
+                        allPossibleQuestions.push({ n1: i, n2: i, answer: i * i, text: `${i}² (${i}×${i})` });
+                    }
+                } else if (selectedMode === 'normal') {
+                    const selectedDans = [];
+                    document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').forEach(cb => {
+                        selectedDans.push(parseInt(cb.value));
+                    });
+                    if (selectedDans.length === 0) {
+                        // このチェックはstartGameButtonのイベントリスナーで行うので、ここではfalseを返すだけでよい
+                        return false;
+                    }
+                    selectedDans.forEach(dan => {
+                        for (let i = 1; i <= 9; i++) {
+                            allPossibleQuestions.push({ n1: dan, n2: i, answer: dan * i, text: `${dan} × ${i}` });
+                        }
+                    });
+                }
+                if (allPossibleQuestions.length === 0) return false;
+
+                allPossibleQuestions.sort(() => Math.random() - 0.5); // Shuffle
+                return true;
+            }
+
+            function generateAnswerOptions(correctAnswer, question) {
+                const options = new Set();
+                options.add(correctAnswer);
+
+                const variations = [-1, 1, -2, 2, -10, 10, -question.n1, question.n1, -question.n2, question.n2].filter(v => correctAnswer + v > 0);
+                variations.sort(() => Math.random() - 0.5); // バリエーションをシャッフル
+
+                for (const v of variations) {
+                    if (options.size >= NUM_OPTIONS) break;
+                    const option = correctAnswer + v;
+                    if (option > 0 && !options.has(option)) {
+                        options.add(option);
+                    }
+                }
+
+                if (question && (selectedMode === 'normal' || (selectedMode === 'oni-hard' && question.n1 <=13 && question.n2 <=9)) ) {
+                     for (let i = 0; i < 5; i++) {
+                        if (options.size >= NUM_OPTIONS) break;
+                        const randomMultiplier = Math.floor(Math.random() * 9) + 1;
+                        if (randomMultiplier !== question.n2) {
+                            const option = question.n1 * randomMultiplier;
+                            if (option > 0 && !options.has(option) && option !== correctAnswer) {
+                                options.add(option);
+                            }
+                        }
+                    }
+                }
+                
+                if (selectedMode === 'oni-hard') {
+                     for (let i = 0; i < 5; i++) {
+                        if (options.size >= NUM_OPTIONS) break;
+                        const randomBase = Math.floor(Math.random() * 20) + 1;
+                        const option = randomBase * randomBase;
+                         if (option > 0 && !options.has(option) && option !== correctAnswer) {
+                            options.add(option);
+                        }
+                    }
+                }
+
+                let maxPossibleAnswer = selectedMode === 'oni-hard' ? 400 : 81;
+                 if (question && question.n1 > 9 || question.n2 > 9) maxPossibleAnswer = Math.max(maxPossibleAnswer, question.n1 * question.n2 + 30);
+
+                while (options.size < NUM_OPTIONS) {
+                    const rangeMin = Math.max(1, correctAnswer - 25);
+                    const rangeMax = correctAnswer + 25;
+                    let randomOption = Math.floor(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
+                    
+                    if (options.has(randomOption) || randomOption <= 0) {
+                        randomOption = Math.floor(Math.random() * maxPossibleAnswer) + 1;
+                    }
+
+                    if (randomOption > 0 && !options.has(randomOption)) {
+                        options.add(randomOption);
+                    } else { 
+                        let failsafeCount = 0;
+                        let failsafeOption;
+                        do {
+                            failsafeOption = Math.floor(Math.random() * (correctAnswer + 60)) + 1;
+                            failsafeCount++;
+                        } while (options.has(failsafeOption) && failsafeCount < 20) // 無限ループ防止
+                        if (failsafeOption > 0 && !options.has(failsafeOption)) {
+                             options.add(failsafeOption);
+                        }
+                    }
+                    if (options.size < NUM_OPTIONS && options.size > NUM_OPTIONS -2 && options.size > 0) { // あと少しで埋まらない場合
+                        for(let i=1; i<1000; i++){
+                            if(!options.has(i)) {
+                                options.add(i);
+                                if(options.size >= NUM_OPTIONS) break;
+                            }
+                        }
+                    }
+                }
+                
+                const finalOptions = Array.from(options);
+                while(finalOptions.length > NUM_OPTIONS) finalOptions.pop();
+                while(finalOptions.length < NUM_OPTIONS) {
+                    let fillValue = 1;
+                    while(finalOptions.includes(fillValue) || options.has(fillValue)) fillValue++;
+                    finalOptions.push(fillValue);
+                    options.add(fillValue); // Setにも追加して重複を避ける
+                }
+                return finalOptions.sort(() => Math.random() - 0.5);
+            }
+
+            function displayAnswerOptions(options, container, handler) {
+                container.innerHTML = '';
+                options.forEach(optionValue => {
+                    const button = document.createElement('button');
+                    button.textContent = optionValue;
+                    button.addEventListener('click', () => handler(optionValue, button, options));
+                    container.appendChild(button);
+                });
+            }
+
+            // --- Game Logic ---
+            function startGameFlow() {
+                console.log("Starting game flow...");
+                incorrectAnswers = []; // ゲーム開始時に間違えた問題リストをリセット
+
+                if (!generateQuestions()) { // 問題生成
+                    // generateQuestions内でfalseが返るのは、ノーマルモードで段が未選択の場合のみ
+                    // このチェックはstartGameButtonのクリックハンドラで行っているので、通常ここには来ない
+                    alert('問題の生成に失敗しました。モードと範囲の選択を確認してください。');
+                    init(); // 初期画面に戻す
+                    return;
+                }
+                console.log(`Generated ${allPossibleQuestions.length} questions.`);
+
+                score = 0;
+                timeLeft = 60;
+                currentScoreSpan.textContent = score;
+                timeLeftSpan.textContent = timeLeft;
+                feedbackTextP.textContent = '';
+                feedbackTextP.className = '';
+
+                showScreen('game');
+                console.log("Game screen shown.");
+                nextQuestion();
+                startTimer();
+            }
+
+            function startTimer() {
+                clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timeLeftSpan.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+
+            function nextQuestion() {
+                if (timeLeft <= 0) return;
+                feedbackTextP.textContent = '';
+                feedbackTextP.className = '';
+
+                if (allPossibleQuestions.length === 0) {
+                    feedbackTextP.textContent = "全ての問題を解きました！";
+                    setTimeout(endGame, 1500);
+                    return;
+                }
+
+                currentQuestion = allPossibleQuestions.pop();
+                console.log("Next question:", currentQuestion);
+                questionTextP.textContent = currentQuestion.text + " = ?";
+                const options = generateAnswerOptions(currentQuestion.answer, currentQuestion);
+                displayAnswerOptions(options, answerOptionsContainer, handleAnswerSelection);
+                questionStartTime = Date.now();
+            }
+
+            function handleAnswerSelection(selectedValue, selectedButton, allOptions) {
+                if (timeLeft <= 0 || !currentQuestion) return;
+
+                const optionButtons = answerOptionsContainer.querySelectorAll('button');
+                optionButtons.forEach(btn => btn.disabled = true);
+
+                const userAnswer = parseInt(selectedValue);
+                const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+                if (userAnswer === currentQuestion.answer) {
+                    let pointsEarned = Math.max(1, 10 - Math.floor(timeTaken));
+                    score += pointsEarned;
+                    feedbackTextP.textContent = `正解！ +${pointsEarned}点`;
+                    feedbackTextP.className = 'correct';
+                    selectedButton.classList.add('correct-option');
+                } else {
+                    score = Math.max(0, score - 5);
+                    feedbackTextP.textContent = `不正解… -5点 (正解は ${currentQuestion.answer})`;
+                    feedbackTextP.className = 'incorrect';
+                    selectedButton.classList.add('incorrect-option');
+                    optionButtons.forEach(btn => {
+                        if (parseInt(btn.textContent) === currentQuestion.answer) {
+                            btn.classList.add('correct-option');
+                        }
+                    });
+                    const existingIncorrect = incorrectAnswers.find(q => q.text === currentQuestion.text);
+                    if (!existingIncorrect) {
+                         incorrectAnswers.push(currentQuestion);
+                    }
+                }
+
+                currentScoreSpan.textContent = score;
+                setTimeout(() => {
+                    optionButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('correct-option', 'incorrect-option');
+                    });
+                    if (timeLeft > 0) {
+                        nextQuestion();
+                    } else {
+                        endGame(); // 時間切れならここでゲーム終了処理
+                    }
+                }, 1500);
+            }
+
+            function endGame() {
+                console.log("Game ended. Score:", score);
+                clearInterval(timerInterval);
+                finalScoreSpan.textContent = score;
+                incorrectQuestionsListUl.innerHTML = '';
+
+                if (incorrectAnswers.length === 0) {
+                    const li = document.createElement('li');
+                    li.textContent = "素晴らしい！全問正解、または時間内に間違えませんでした！";
+                    incorrectQuestionsListUl.appendChild(li);
+                    reviewTrainingButton.disabled = true;
+                } else {
+                    incorrectAnswers.forEach(q => {
+                        const li = document.createElement('li');
+                        li.textContent = `${q.text} = ${q.answer}`;
+                        incorrectQuestionsListUl.appendChild(li);
+                    });
+                    reviewTrainingButton.disabled = false;
+                }
+                showScreen('result');
+                console.log("Result screen shown.");
+            }
+
+            // --- Review Training ---
+            function startReviewTraining() {
+                if (incorrectAnswers.length === 0) return;
+                console.log("Starting review training...");
+                reviewQuestionsPool = [...incorrectAnswers];
+                reviewFeedbackTextP.textContent = '';
+                reviewProgressTextP.style.display = 'block';
+                showScreen('review');
+                console.log("Review screen shown.");
+                nextReviewQuestion();
+            }
+
+            function nextReviewQuestion() {
+                reviewFeedbackTextP.textContent = '';
+                reviewFeedbackTextP.className = '';
+
+                if (reviewQuestionsPool.length === 0) {
+                    reviewQuestionTextP.textContent = "復習完了！お疲れ様でした。";
+                    reviewAnswerOptionsContainer.innerHTML = '';
+                    reviewProgressTextP.style.display = 'none';
+                    setTimeout(() => {
+                        init();
+                    }, 3000);
+                    return;
+                }
+
+                currentReviewQuestion = reviewQuestionsPool[0];
+                console.log("Next review question:", currentReviewQuestion);
+                reviewQuestionTextP.textContent = currentReviewQuestion.text + " = ?";
+                const options = generateAnswerOptions(currentReviewQuestion.answer, currentReviewQuestion);
+                displayAnswerOptions(options, reviewAnswerOptionsContainer, handleReviewAnswerSelection);
+                reviewProgressTextP.textContent = `残り ${reviewQuestionsPool.length} 問`;
+            }
+
+            function handleReviewAnswerSelection(selectedValue, selectedButton, allOptions) {
+                if (!currentReviewQuestion) return;
+
+                const optionButtons = reviewAnswerOptionsContainer.querySelectorAll('button');
+                optionButtons.forEach(btn => btn.disabled = true);
+
+                const userAnswer = parseInt(selectedValue);
+
+                if (userAnswer === currentReviewQuestion.answer) {
+                    reviewFeedbackTextP.textContent = "正解！";
+                    reviewFeedbackTextP.className = 'correct';
+                    selectedButton.classList.add('correct-option');
+                    reviewQuestionsPool.shift();
+                    setTimeout(() => {
+                        optionButtons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('correct-option');
+                        });
+                        nextReviewQuestion();
+                    }, 1000);
+                } else {
+                    reviewFeedbackTextP.textContent = "不正解です。もう一度！";
+                    reviewFeedbackTextP.className = 'incorrect';
+                    selectedButton.classList.add('incorrect-option');
+                    optionButtons.forEach(btn => {
+                        if (parseInt(btn.textContent) === currentReviewQuestion.answer) {
+                            btn.classList.add('correct-option');
+                        }
+                    });
+                    setTimeout(() => {
+                        optionButtons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('correct-option', 'incorrect-option');
+                        });
+                        // nextReviewQuestion(); // 間違えたら同じ問題を再度出すので、ここでは呼び出さない
+                                            // ボタンが再度有効になれば、同じ問題に再挑戦できる
+                    }, 1200);
+                }
+            }
+
+            // --- Event Listeners ---
+            selectNormalModeButton.addEventListener('click', () => {
+                console.log("Normal mode selected");
+                selectedMode = 'normal';
+                selectNormalModeButton.classList.add('selected');
+                selectOniHardModeButton.classList.remove('selected');
+                danSelectionContainer.style.display = 'block';
+                startGameButton.style.display = 'inline-block';
+                checkDanSelection(); // 段が選択されているか確認し、ボタンの有効/無効を更新
+            });
+
+            selectOniHardModeButton.addEventListener('click', () => {
+                console.log("Oni-hard mode selected");
+                selectedMode = 'oni-hard';
+                selectOniHardModeButton.classList.add('selected');
+                selectNormalModeButton.classList.remove('selected');
+                danSelectionContainer.style.display = 'none';
+                document.querySelectorAll('#dan-selection input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
+                startGameButton.style.display = 'inline-block';
+                startGameButton.disabled = false; // 鬼ハードモードは段選択不要なので即有効
+            });
+
+            startGameButton.addEventListener('click', () => {
+                console.log("Start game button clicked. Mode:", selectedMode);
+                if (!selectedMode) { // 通常は発生しないはずだが念のため
+                    alert('まずモードを選択してください。');
+                    return;
+                }
+                // ノーマルモードの場合の段選択チェックは、ボタンのdisabled属性で制御済み
+                // なので、ここでは特別なチェックは不要（ボタンが押せる時点で条件は満たされているはず）
+                startGameFlow();
+            });
+
+            reviewTrainingButton.addEventListener('click', startReviewTraining);
+            tryAgainButton.addEventListener('click', () => {
+                console.log("Try again button clicked.");
+                init();
+            });
+
+            // --- Initial Load ---
+            init();
+        });
+    </script>
+</body>
+</html>
