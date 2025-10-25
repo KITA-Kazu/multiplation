@@ -3,251 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九九チャレンジ (6択)</title>
+    <title>わくわく九九チャレンジ！ (6択)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&family=Hanken+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #64B5F6; /* Light Blue */
+            --secondary-green: #81C784; /* Light Green */
+            --accent-yellow: #FFEB3B; /* Yellow */
+            --accent-pink: #FF8A80; /* Light Red/Pink */
+            --dark-text: #37474F; /* Dark Blue Grey */
+            --light-text: #FFFFFF;
+            --button-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            --button-shadow-active: 0 1px 0 rgba(0,0,0,0.2);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Mochiy Pop P One', sans-serif; /* Pop font for main titles */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f4f7f6;
+            background-image: linear-gradient(135deg, #FFD180, #FFAB40); /* Warm gradient */
             margin: 0;
             text-align: center;
-            color: #333;
+            color: var(--dark-text);
+            overflow-x: hidden;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #app-container {
             background-color: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 550px;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 600px; /* Slightly wider for better layout */
+            transform: scale(1);
+            transition: transform 0.3s ease-out;
+            border: 5px solid var(--dark-text); /* Stronger border */
         }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
+        
         h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            color: var(--dark-text);
+            margin-bottom: 25px;
+            font-size: 2.5em; /* Larger title */
+            text-shadow: 3px 3px var(--accent-yellow); /* Fun text shadow */
         }
         h2 {
-            color: #34495e;
-            margin-top: 25px;
-            margin-bottom: 10px;
+            color: var(--dark-text);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px rgba(0,0,0,0.1);
         }
         p {
             line-height: 1.6;
             color: #555;
+            font-family: 'Hanken Grotesk', sans-serif; /* Readable font for body text */
+            font-weight: 700;
         }
 
-        #mode-selection-buttons button {
-            margin: 8px 5px;
-            padding: 12px 18px;
-            font-size: 16px;
-            border-radius: 6px;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            color: #333;
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
         }
-        #mode-selection-buttons button:active {
-            transform: translateY(1px);
+        .screen.active {
+            display: block;
         }
 
-        #mode-selection-buttons button.selected {
-            color: white;
-            border-width: 2px;
-            border-style: solid;
-        }
-        #mode-selection-buttons button#select-normal-mode-button.selected {
-            background-color: #3498db; /* Blue */
-            border-color: #2980b9;
-        }
-         #mode-selection-buttons button#select-oni-hard-mode-button.selected {
-            background-color: #e74c3c; /* Red */
-            border-color: #c0392b;
-        }
-        #mode-selection-buttons button#select-ultra-oni-hard-mode-button { /* New Style */
-            background-color: #9b59b6; /* Amethyst */
-            border-color: #8e44ad;
-            color: white;
-        }
-        #mode-selection-buttons button#select-ultra-oni-hard-mode-button.selected { /* New Style */
-            background-color: #8e44ad;
-            border-color: #732d91;
-        }
-        #mode-selection-buttons button#select-ultra-oni-hard-mode-button:disabled { /* New Style */
-            background-color: #d7bde2;
-            border-color: #c39bd3;
-            color: #777;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-
-        #dan-selection-container {
-            margin-top: 25px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-
-        #dan-selection {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        #dan-selection label {
-            padding: 10px 14px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            background-color: white;
-            transition: background-color 0.2s ease;
-        }
-        #dan-selection label:hover {
-            background-color: #ecf0f1;
-        }
-        #dan-selection input[type="checkbox"] {
-            margin-right: 8px;
-            transform: scale(1.1);
-        }
-
+        /* --- Buttons General --- */
         button {
-            padding: 12px 18px;
-            font-size: 16px;
-            background-color: #95a5a6;
-            color: white;
+            font-family: 'Mochiy Pop P One', sans-serif;
+            padding: 15px 25px;
+            font-size: 1.1em;
             border: none;
-            border-radius: 6px;
+            border-radius: 12px;
             cursor: pointer;
-            margin: 8px 5px;
-            transition: background-color 0.2s ease, opacity 0.2s ease;
+            margin: 10px 8px;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: var(--button-shadow);
+            color: var(--light-text);
+            text-shadow: 1px 1px rgba(0,0,0,0.2);
+            position: relative;
+            top: 0;
+            will-change: transform, box-shadow;
         }
 
         button:hover:not(:disabled) {
-            opacity: 0.85;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: var(--button-shadow-active);
         }
         button:disabled {
-            background-color: #bdc3c7;
+            background-color: #BDBDBD !important;
+            border-color: #9E9E9E !important;
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.8;
+            box-shadow: var(--button-shadow);
         }
 
+        /* --- Mode Selection Buttons --- */
+        #mode-selection-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px; /* More space between buttons */
+            margin-bottom: 25px;
+        }
+
+        #mode-selection-buttons button {
+            background-color: #B0BEC5; /* Grey */
+            box-shadow: var(--button-shadow);
+            color: var(--dark-text);
+            text-shadow: none;
+            border: 2px solid #90A4AE;
+        }
+        #mode-selection-buttons button.selected {
+            border-width: 3px; /* Thicker border when selected */
+        }
+        #mode-selection-buttons button#select-normal-mode-button.selected {
+            background-color: var(--primary-blue);
+            border-color: #42A5F5;
+            color: var(--light-text);
+        }
+        #mode-selection-buttons button#select-oni-hard-mode-button.selected {
+            background-color: var(--accent-pink);
+            border-color: #EF5350;
+            color: var(--light-text);
+        }
+        #mode-selection-buttons button#select-ultra-oni-hard-mode-button {
+            background-color: #AB47BC; /* Purple */
+            border-color: #8E24AA;
+        }
+        #mode-selection-buttons button#select-ultra-oni-hard-mode-button.selected {
+            background-color: #8E24AA;
+            border-color: #6A1B9A;
+        }
+        #mode-selection-buttons button#select-ultra-oni-hard-mode-button:disabled {
+            background-color: #CE93D8 !important;
+            border-color: #BA68C8 !important;
+        }
+
+        /* --- Dan Selection --- */
+        #dan-selection-container {
+            margin-top: 30px;
+            padding: 25px;
+            border: 3px dashed var(--secondary-green); /* Dashed border for fun */
+            border-radius: 15px;
+            background-color: #E8F5E9; /* Light green background */
+        }
+        #dan-selection-container p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--dark-text);
+        }
+
+        #dan-selection {
+            display: grid; /* Use grid for better checkbox layout */
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #dan-selection label {
+            padding: 12px 15px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            background-color: var(--light-text);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 0 var(--primary-blue);
+        }
+        #dan-selection label:hover {
+            background-color: #E3F2FD;
+            transform: translateY(-1px);
+        }
+        #dan-selection input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.3); /* Larger checkbox */
+            accent-color: var(--primary-blue); /* Style checkbox itself */
+        }
+        #dan-selection input[type="checkbox"]:checked + span { /* Apply style to text when checked */
+            font-weight: bold;
+            color: var(--dark-text);
+        }
+
+        /* --- Start Game Button --- */
         #start-game-button {
-            background-color: #2ecc71;
-            margin-top: 20px;
+            background-color: #4CAF50; /* Green */
+            border: 2px solid #388E3C;
+            margin-top: 30px;
+            box-shadow: 0 6px 0 #388E3C;
+            font-size: 1.3em;
+            padding: 15px 30px;
         }
         #start-game-button:hover:not(:disabled) {
-            background-color: #27ae60;
+            background-color: #66BB6A;
+            box-shadow: 0 8px 0 #388E3C;
         }
-        #challenge-ultra-oni-hard-button { /* New Style */
-            background-color: #f1c40f; /* Sun Flower */
-            color: #333;
-            margin-top: 15px;
-        }
-        #challenge-ultra-oni-hard-button:hover:not(:disabled) { /* New Style */
-            background-color: #f39c12; /* Orange */
+        #start-game-button:active:not(:disabled) {
+            box-shadow: 0 3px 0 #388E3C;
         }
 
-
+        /* --- Game Screen --- */
         #game-info {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
+            justify-content: space-around;
+            margin-bottom: 30px;
             font-weight: bold;
-            font-size: 1.1em;
+            font-size: 1.3em;
+            background-color: var(--accent-yellow);
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 0 #FBC02D;
+            color: var(--dark-text);
+        }
+        #game-info span {
+            color: var(--dark-text);
+            text-shadow: 1px 1px rgba(255,255,255,0.5);
         }
 
         #question-area p#question-text {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-            font-weight: 500;
+            font-size: 3.5em; /* Very large question text */
+            margin-bottom: 30px;
+            color: var(--dark-text);
+            font-weight: 800;
+            text-shadow: 4px 4px var(--accent-pink);
+            white-space: nowrap; /* Prevent line breaks for questions like 11² */
         }
 
         #answer-options-container, #review-answer-options-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin-top: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px; /* More space for answer buttons */
+            margin-top: 30px;
         }
 
         #answer-options-container button, #review-answer-options-container button {
-            padding: 18px 12px;
-            font-size: 18px;
-            background-color: #ecf0f1;
-            color: #34495e;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            transition: background-color 0.2s ease, transform 0.1s ease;
+            padding: 20px 15px;
+            font-size: 2em; /* Larger font for answers */
+            background-color: var(--primary-blue);
+            color: var(--light-text);
+            border: 3px solid #1976D2;
+            border-radius: 15px;
+            box-shadow: 0 6px 0 #1976D2;
         }
         #answer-options-container button:hover:not(:disabled), #review-answer-options-container button:hover:not(:disabled) {
-            background-color: #dce4e7;
+            background-color: #42A5F5;
+            box-shadow: 0 8px 0 #1976D2;
         }
         #answer-options-container button:active:not(:disabled), #review-answer-options-container button:active:not(:disabled) {
-            transform: translateY(1px);
+            box-shadow: 0 3px 0 #1976D2;
         }
         #answer-options-container button.correct-option,
         #review-answer-options-container button.correct-option {
-            background-color: #2ecc71 !important;
-            color: white !important;
-            border-color: #27ae60 !important;
+            background-color: #4CAF50 !important; /* Green */
+            border-color: #388E3C !important;
+            box-shadow: 0 6px 0 #388E3C !important;
         }
         #answer-options-container button.incorrect-option,
         #review-answer-options-container button.incorrect-option {
-            background-color: #e74c3c !important;
-            color: white !important;
-            border-color: #c0392b !important;
+            background-color: #F44336 !important; /* Red */
+            border-color: #D32F2F !important;
+            box-shadow: 0 6px 0 #D32F2F !important;
         }
-
 
         #feedback-text, #review-feedback-text {
-            margin-top: 20px;
+            margin-top: 25px;
             font-weight: bold;
-            min-height: 1.3em;
-            font-size: 1.1em;
+            min-height: 1.5em; /* Ensure space */
+            font-size: 1.5em;
+            text-shadow: 1px 1px rgba(255,255,255,0.5);
         }
 
-        .correct { color: #27ae60; }
-        .incorrect { color: #c0392b; }
+        .correct { color: #4CAF50; }
+        .incorrect { color: #F44336; }
+
+        /* --- Result Screen --- */
+        #final-score {
+            font-size: 2.5em;
+            color: var(--accent-pink);
+            text-shadow: 2px 2px var(--dark-text);
+            display: block;
+            margin-top: 10px;
+        }
+
+        #unlock-message {
+            color: #8E24AA; /* Purple for unlock message */
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2em;
+            text-shadow: 1px 1px var(--light-text);
+        }
 
         #incorrect-questions-list {
             list-style-type: none;
             padding: 0;
             text-align: left;
-            max-height: 220px;
+            max-height: 250px; /* Taller scroll area */
             overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            background-color: #fdfdfd;
+            border: 3px solid var(--accent-yellow); /* Yellow border */
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            background-color: #FFFDE7; /* Light yellow background */
+            color: var(--dark-text);
         }
         #incorrect-questions-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 0;
+            border-bottom: 1px dashed #FFECB3; /* Dashed separator */
             color: #555;
+            font-family: 'Hanken Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.1em;
         }
         #incorrect-questions-list li:last-child {
             border-bottom: none;
         }
-         #unlock-message {
-            color: #9b59b6;
+
+        #review-training-button {
+            background-color: #FFC107; /* Amber */
+            border: 2px solid #FFA000;
+            box-shadow: 0 6px 0 #FFA000;
+            color: var(--dark-text);
+            text-shadow: 1px 1px rgba(255,255,255,0.5);
+        }
+        #review-training-button:hover:not(:disabled) {
+            background-color: #FFCA28;
+            box-shadow: 0 8px 0 #FFA000;
+        }
+        #review-training-button:active:not(:disabled) {
+            box-shadow: 0 3px 0 #FFA000;
+        }
+
+        #try-again-button {
+            background-color: var(--primary-blue);
+            border: 2px solid #1976D2;
+            box-shadow: 0 6px 0 #1976D2;
+        }
+        #try-again-button:hover:not(:disabled) {
+            background-color: #42A5F5;
+            box-shadow: 0 8px 0 #1976D2;
+        }
+        #try-again-button:active:not(:disabled) {
+            box-shadow: 0 3px 0 #1976D2;
+        }
+
+        #challenge-ultra-oni-hard-button {
+            background-color: #9C27B0; /* Deeper Purple */
+            border: 2px solid #7B1FA2;
+            box-shadow: 0 6px 0 #7B1FA2;
+            margin-top: 20px;
+        }
+        #challenge-ultra-oni-hard-button:hover:not(:disabled) {
+            background-color: #AB47BC;
+            box-shadow: 0 8px 0 #7B1FA2;
+        }
+        #challenge-ultra-oni-hard-button:active:not(:disabled) {
+            box-shadow: 0 3px 0 #7B1FA2;
+        }
+
+        /* --- Review Screen --- */
+        #review-progress-text {
+            margin-top: 20px;
+            font-size: 1.3em;
+            color: var(--dark-text);
             font-weight: bold;
-            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            h2 { font-size: 1.5em; }
+            #question-area p#question-text { font-size: 2.8em; }
+            #answer-options-container button, #review-answer-options-container button {
+                font-size: 1.6em;
+                padding: 15px 10px;
+            }
+            #app-container {
+                padding: 20px 15px;
+                border-width: 3px;
+            }
+            button {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+            #game-info {
+                font-size: 1.1em;
+                padding: 8px 10px;
+            }
+            #incorrect-questions-list {
+                padding: 15px;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8em; text-shadow: 2px 2px var(--accent-yellow); }
+            #question-area p#question-text { font-size: 2.2em; text-shadow: 3px 3px var(--accent-pink);}
+            #answer-options-container, #review-answer-options-container {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on small screens */
+            }
+            #answer-options-container button, #review-answer-options-container button {
+                font-size: 1.4em;
+                padding: 12px 8px;
+            }
+            #mode-selection-buttons button {
+                margin: 5px;
+                padding: 10px 15px;
+            }
         }
     </style>
 </head>
@@ -255,28 +427,28 @@
     <div id="app-container">
         <!-- 画面1: モード・範囲選択 -->
         <div id="selection-screen" class="screen active">
-            <h1>九九チャレンジ</h1>
-            <p>プレイするモードを選んでください:</p>
+            <h1>わくわく九九チャレンジ！</h1>
+            <p>どんな九九にチャレンジする？</p>
             <div id="mode-selection-buttons">
-                <button id="select-normal-mode-button">ノーマルモード</button>
-                <button id="select-oni-hard-mode-button">鬼ハードモード</button>
-                <button id="select-ultra-oni-hard-mode-button" style="display:none;">ウルトラ鬼ハード</button>
+                <button id="select-normal-mode-button">ふつうモード</button>
+                <button id="select-oni-hard-mode-button">鬼モード</button>
+                <button id="select-ultra-oni-hard-mode-button" style="display:none;">ウルトラ鬼モード</button>
             </div>
 
             <div id="dan-selection-container" style="display:none;">
-                <p>出題範囲を選択してください（複数選択可）:</p>
+                <p>どの段に挑戦する？（いくつでも選べるよ！）:</p>
                 <div id="dan-selection">
                     <!-- チェックボックスがJSで生成されます -->
                 </div>
             </div>
-            <button id="start-game-button" style="display:none;">ゲーム開始</button>
+            <button id="start-game-button" style="display:none;">ゲームスタート！</button>
         </div>
 
         <!-- 画面2: ゲーム画面 -->
         <div id="game-screen" class="screen">
             <div id="game-info">
-                <p>残り時間: <span id="time-left">60</span>秒</p>
-                <p>スコア: <span id="current-score">0</span></p>
+                <p>のこり時間: <span id="time-left">60</span>秒</p>
+                <p>スコア: <span id="current-score">0</span>点</p>
             </div>
             <div id="question-area">
                 <p id="question-text"></p>
@@ -289,21 +461,21 @@
 
         <!-- 画面3: 結果表示画面 -->
         <div id="result-screen" class="screen">
-            <h1>結果発表</h1>
-            <p>最終スコア: <span id="final-score">0</span>点</p>
-            <p id="unlock-message" style="display:none;"></p> {/* ウルトラ鬼ハード解除メッセージ */}
-            <h2>間違えた問題:</h2>
+            <h1>結果発表！</h1>
+            <p>きみの最終スコアは... <span id="final-score">0</span>点！</p>
+            <p id="unlock-message" style="display:none;"></p>
+            <h2>間違えちゃった問題:</h2>
             <ul id="incorrect-questions-list">
                 {/* 間違えた問題がJSで表示されます */}
             </ul>
-            <button id="review-training-button">復習トレーニング</button>
-            <button id="try-again-button">もう一度チャレンジする</button>
-            <button id="challenge-ultra-oni-hard-button" style="display:none;">ウルトラ鬼ハードに挑戦！</button>
+            <button id="review-training-button">もう一度練習する！</button>
+            <button id="try-again-button">最初からチャレンジ！</button>
+            <button id="challenge-ultra-oni-hard-button" style="display:none;">ウルトラ鬼モードに挑戦！</button>
         </div>
 
         <!-- 画面4: 復習トレーニング画面 -->
         <div id="review-screen" class="screen">
-            <h1>復習トレーニング</h1>
+            <h1>復習トレーニング！</h1>
             <p id="review-question-text"></p>
             <div id="review-answer-options-container">
                 {/* 復習用選択肢ボタンがJSで生成されます */}
@@ -401,8 +573,10 @@
                     checkbox.value = i;
                     checkbox.id = `dan-${i}`;
                     checkbox.addEventListener('change', checkDanSelection);
+                    const span = document.createElement('span'); // Add span for text
+                    span.textContent = ` ${i}の段`;
                     label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(` ${i}の段`));
+                    label.appendChild(span);
                     danSelectionDiv.appendChild(label);
                 }
             }
@@ -428,8 +602,9 @@
             function generateQuestions() {
                 allPossibleQuestions = [];
 
-                const oniHardBaseDans = [7, 8, 9, 10, 11, 12, 13, 14, 15];
-                const ultraSquares = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+                // 鬼モードとウルトラ鬼モードの問題設定を調整
+                const oniHardBaseDans = [7, 8, 9, 10, 11, 12, 13, 14, 15]; // 最大15の段まで
+                const ultraSquares = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]; // 平方数も20まで
 
                 if (selectedMode === 'oni-hard' || selectedMode === 'ultra-oni-hard') {
                     oniHardBaseDans.forEach(dan => {
@@ -437,10 +612,25 @@
                             allPossibleQuestions.push({ n1: dan, n2: j, answer: dan * j, text: `${dan} × ${j}` });
                         }
                     });
+                    // 特に難しくするため、掛け算の片方をさらに大きくする
+                    [10, 11, 12, 13, 14, 15].forEach(dan => {
+                        for (let j = 10; j <= 15; j++) { // 最大15x15
+                             allPossibleQuestions.push({ n1: dan, n2: j, answer: dan * j, text: `${dan} × ${j}` });
+                        }
+                    });
+
                     if (selectedMode === 'ultra-oni-hard') {
                         ultraSquares.forEach(num => {
                              allPossibleQuestions.push({ n1: num, n2: num, answer: num * num, text: `${num}² (${num}×${num})` });
                         });
+                        // 3桁以上の答えになるような複雑な掛け算を追加
+                        for (let i = 15; i <= 25; i++) {
+                            for (let j = 10; j <= 20; j++) {
+                                if (Math.random() < 0.3) { // ある程度ランダムに
+                                    allPossibleQuestions.push({ n1: i, n2: j, answer: i * j, text: `${i} × ${j}` });
+                                }
+                            }
+                        }
                     }
                 } else if (selectedMode === 'normal') {
                     const selectedDans = [];
@@ -468,30 +658,45 @@
                 options.add(correctAnswer);
 
                 const variations = [];
+                // 基本的な選択肢
                 variations.push(correctAnswer - 1, correctAnswer + 1, correctAnswer - 2, correctAnswer + 2);
                 variations.push(correctAnswer - 10, correctAnswer + 10);
+                variations.push(correctAnswer - 5, correctAnswer + 5);
+
 
                 if (question) {
+                    // 問題の数字を使った近い値
                     variations.push(correctAnswer - question.n1, correctAnswer + question.n1);
                     variations.push(correctAnswer - question.n2, correctAnswer + question.n2);
-                    for(let i=1; i<=3; ++i) {
-                        let randomMultiplier = Math.floor(Math.random() * 9) + 1;
-                        if (randomMultiplier !== question.n2) {
-                             variations.push(question.n1 * randomMultiplier);
-                        }
-                        if (selectedMode === 'oni-hard' || selectedMode === 'ultra-oni-hard') {
-                           randomMultiplier = Math.floor(Math.random() * (question.n1 > 15 ? 9 : 15)) +1; // かけられる数に応じて調整
-                           if (randomMultiplier !== question.n2) {
-                               variations.push(question.n1 * randomMultiplier);
-                           }
+
+                    // かけられる数、かける数を入れ替えた間違い（例：9x7に対し7x9=63ではなく7x8=56など）
+                    if (question.n1 <= 9 && question.n2 <= 9) { // 小学生向けの九九の範囲
+                         if (question.n1 !== question.n2) {
+                            variations.push(question.n2 * question.n1); // 同じ答えになるが念のため
+                         }
+                         if (question.n1 > 1) variations.push((question.n1 - 1) * question.n2);
+                         if (question.n1 < 9) variations.push((question.n1 + 1) * question.n2);
+                         if (question.n2 > 1) variations.push(question.n1 * (question.n2 - 1));
+                         if (question.n2 < 9) variations.push(question.n1 * (question.n2 + 1));
+                    } else { // 鬼モード、ウルトラ鬼モードの場合
+                        const base1 = question.n1;
+                        const base2 = question.n2;
+                        // 近くの数で掛けた間違い
+                        variations.push(base1 * (base2 - 1), base1 * (base2 + 1));
+                        variations.push((base1 - 1) * base2, (base1 + 1) * base2);
+                        // 十の位や一の位を間違えたような間違い
+                        if (base1 >= 10 && base2 >= 10) {
+                            variations.push( (Math.floor(base1/10)*10 + base2 % 10) * base2);
+                            variations.push( base1 * (Math.floor(base2/10)*10 + base1 % 10));
                         }
                     }
+                   
                     // 平方問題の場合、他の平方を候補に入れる
                     if (question.n1 === question.n2 && (selectedMode === 'ultra-oni-hard')) {
                         const squareCandidates = [11,12,13,14,15,16,17,18,19,20];
                         for(let i=0; i<3; ++i) {
                             const randSqBase = squareCandidates[Math.floor(Math.random() * squareCandidates.length)];
-                            if (randSqBase !== question.n1) {
+        if (randSqBase !== question.n1) {
                                 variations.push(randSqBase * randSqBase);
                             }
                         }
@@ -503,8 +708,8 @@
                 });
 
                 let maxPossibleAnswer = 81; // Default for normal
-                if (selectedMode === 'oni-hard') maxPossibleAnswer = 15*9 + 20;
-                if (selectedMode === 'ultra-oni-hard') maxPossibleAnswer = 20*20 + 20; // 400程度
+                if (selectedMode === 'oni-hard') maxPossibleAnswer = 15*15 + 20; // 225 + 20
+                if (selectedMode === 'ultra-oni-hard') maxPossibleAnswer = 25*20 + 50; // 500 + 50
                 
                 if (question && (question.n1 > 9 || question.n2 > 9)) {
                     maxPossibleAnswer = Math.max(maxPossibleAnswer, question.n1 * question.n2 + 30);
@@ -525,13 +730,14 @@
                         let failsafeCount = 0;
                         let failsafeOption;
                         do {
-                            failsafeOption = Math.floor(Math.random() * (maxPossibleAnswer + 20)) + 1;
+                            failsafeOption = Math.floor(Math.random() * (maxPossibleAnswer + 50)) + 1; // 範囲を広げる
                             failsafeCount++;
-                        } while (options.has(failsafeOption) && failsafeCount < 30)
+                        } while (options.has(failsafeOption) && failsafeCount < 50) // 試行回数を増やす
                         if (failsafeOption > 0 && !options.has(failsafeOption)) {
                              options.add(failsafeOption);
                         }
                     }
+                    // もしオプションの数がまだ足りない場合、存在する数字で埋める
                     if (options.size < NUM_OPTIONS && options.size >= NUM_OPTIONS -2 && options.size > 0) {
                          for(let i=1; i < maxPossibleAnswer + 50 ; i++){
                             if(!options.has(i)) {
@@ -543,9 +749,12 @@
                 }
                 
                 const finalOptions = Array.from(options);
+                // 選択肢の数が意図せず増えた場合に調整
                 while(finalOptions.length > NUM_OPTIONS) finalOptions.pop(); 
+                // 選択肢の数が意図せず減った場合に調整
                 while(finalOptions.length < NUM_OPTIONS) { 
                     let fillValue = 1;
+                    // 重複しないように埋める
                     while(options.has(fillValue) || finalOptions.includes(fillValue)) fillValue++;
                     finalOptions.push(fillValue);
                     options.add(fillValue);
@@ -633,12 +842,12 @@
                 if (userAnswer === currentQuestion.answer) {
                     let pointsEarned = Math.max(1, 10 - Math.floor(timeTaken));
                     score += pointsEarned;
-                    feedbackTextP.textContent = `正解！ +${pointsEarned}点`;
+                    feedbackTextP.textContent = `せいかい！ +${pointsEarned}点ゲット！`;
                     feedbackTextP.className = 'correct';
                     selectedButton.classList.add('correct-option');
                 } else {
                     score = Math.max(0, score - 5);
-                    feedbackTextP.textContent = `不正解… -5点 (正解は ${currentQuestion.answer})`;
+                    feedbackTextP.textContent = `ざんねん！まちがい！ (こたえは ${currentQuestion.answer}) -5点…`;
                     feedbackTextP.className = 'incorrect';
                     selectedButton.classList.add('incorrect-option');
                     optionButtons.forEach(btn => {
@@ -676,7 +885,7 @@
                     console.log("Oni-hard accuracy:", accuracy);
                     if (accuracy >= 0.8) { // 正解率80%以上
                         if (!ultraOniHardUnlocked) {
-                             unlockMessageP.textContent = "素晴らしい成績です！ウルトラ鬼ハードモードが解放されました！";
+                             unlockMessageP.textContent = "すごい！鬼モード80点以上達成！ウルトラ鬼モードが遊べるようになったよ！";
                              unlockMessageP.style.display = 'block';
                         }
                         ultraOniHardUnlocked = true;
@@ -690,7 +899,7 @@
 
                 if (incorrectAnswers.length === 0) {
                     const li = document.createElement('li');
-                    li.textContent = "素晴らしい！全問正解、または時間内に間違えませんでした！";
+                    li.textContent = "やったね！ぜんぶ正解、または時間切れまでまちがえなかったよ！";
                     incorrectQuestionsListUl.appendChild(li);
                     reviewTrainingButton.disabled = true;
                 } else {
@@ -722,7 +931,7 @@
                 reviewFeedbackTextP.className = '';
 
                 if (reviewQuestionsPool.length === 0) {
-                    reviewQuestionTextP.textContent = "復習完了！お疲れ様でした。";
+                    reviewQuestionTextP.textContent = "復習おしまい！よくがんばったね！";
                     reviewAnswerOptionsContainer.innerHTML = '';
                     reviewProgressTextP.style.display = 'none';
                     setTimeout(init, 3000);
@@ -734,7 +943,7 @@
                 reviewQuestionTextP.textContent = currentReviewQuestion.text + " = ?";
                 const options = generateAnswerOptions(currentReviewQuestion.answer, currentReviewQuestion);
                 displayAnswerOptions(options, reviewAnswerOptionsContainer, handleReviewAnswerSelection);
-                reviewProgressTextP.textContent = `残り ${reviewQuestionsPool.length} 問`;
+                reviewProgressTextP.textContent = `のこり ${reviewQuestionsPool.length} 問`;
             }
 
             function handleReviewAnswerSelection(selectedValue, selectedButton, allOptions) {
@@ -745,10 +954,10 @@
                 const userAnswer = parseInt(selectedValue);
 
                 if (userAnswer === currentReviewQuestion.answer) {
-                    reviewFeedbackTextP.textContent = "正解！";
+                    reviewFeedbackTextP.textContent = "せいかい！えらい！";
                     reviewFeedbackTextP.className = 'correct';
                     selectedButton.classList.add('correct-option');
-                    reviewQuestionsPool.shift();
+                    reviewQuestionsPool.shift(); // 正解したらプールから削除
                     setTimeout(() => {
                         optionButtons.forEach(btn => {
                             btn.disabled = false;
@@ -757,7 +966,7 @@
                         nextReviewQuestion();
                     }, 1000);
                 } else {
-                    reviewFeedbackTextP.textContent = "不正解です。もう一度！";
+                    reviewFeedbackTextP.textContent = "ざんねん…もう一度がんばってみよう！";
                     reviewFeedbackTextP.className = 'incorrect';
                     selectedButton.classList.add('incorrect-option');
                     optionButtons.forEach(btn => {
@@ -765,11 +974,17 @@
                             btn.classList.add('correct-option');
                         }
                     });
+                    // 間違えた問題はプールの一番後ろに戻し、再度出題されるようにする
+                    // reviewQuestionsPool.push(reviewQuestionsPool.shift()); 
+                    // ↑これだと無限ループになりやすいので、間違えてもその場にとどまるか、
+                    // ある程度ランダムにする方が良い。今回はシンプルにその場にとどまる
                     setTimeout(() => {
                         optionButtons.forEach(btn => {
                             btn.disabled = false;
                             btn.classList.remove('correct-option', 'incorrect-option');
                         });
+                        // 次の質問に進まず、同じ質問を再度表示する（UI上の動きを滑らかにするため）
+                        // nextReviewQuestion(); // これは呼び出さない
                     }, 1200);
                 }
             }
@@ -800,22 +1015,27 @@
                 if (ultraOniHardUnlocked) {
                     setModeAndPrepareStart('ultra-oni-hard');
                 } else {
-                    alert("ウルトラ鬼ハードモードはまだ解放されていません。");
+                    alert("ウルトラ鬼モードはまだ解放されていません。鬼モードで80点以上を目指そう！");
                 }
             });
 
             startGameButton.addEventListener('click', () => {
                 console.log("Start game button clicked. Current selectedMode:", selectedMode);
                 if (!selectedMode) {
-                    alert('まずモードを選択してください。'); return;
+                    alert('まずモードを選んでね！'); return;
                 }
                 startGameFlow();
             });
 
             challengeUltraOniHardButton.addEventListener('click', () => {
                 console.log("Challenge Ultra Oni Hard button clicked from result screen.");
-                setModeAndPrepareStart('ultra-oni-hard');
-                startGameFlow(); // 結果画面から直接ウルトラ鬼ハード開始
+                // ウルトラ鬼モードがアンロックされていることを確認
+                if (ultraOniHardUnlocked) {
+                    setModeAndPrepareStart('ultra-oni-hard');
+                    startGameFlow(); // 結果画面から直接ウルトラ鬼ハード開始
+                } else {
+                    alert("ウルトラ鬼モードはまだ解放されていません。鬼モードで80点以上を目指そう！");
+                }
             });
 
             reviewTrainingButton.addEventListener('click', startReviewTraining);
